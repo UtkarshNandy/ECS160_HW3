@@ -47,8 +47,14 @@ public class ModerationController {
                     .build();
 
             HttpResponse<String> response = client.send(secondRequest, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Response is: " + response.body());
-            return "PASSED";
+            String hashtag = response.body();
+
+            // If the hashtag service fails to generate a hashtag, use the default.
+            if (hashtag == null || hashtag.trim().isEmpty()) {
+                hashtag = "#bskypost";
+            }
+            System.out.println("Response is: " + hashtag);
+            return hashtag;
         }
     }
 
