@@ -18,7 +18,7 @@ public class ModerationController {
 
     @PostMapping("/moderate")
     public String moderate(@RequestBody MyRequest request) throws URISyntaxException, IOException, InterruptedException {
-        // Moderation logic
+        // moderation list
         String[] keywords = {
                 "illegal", "fraud", "scam", "exploit",
                 "dox", "swatting", "hack", "crypto", "bots"
@@ -40,20 +40,18 @@ public class ModerationController {
             String jsonBody = "{\"postContent\": \"" + content.replace("\"", "\\\"") + "\"}";
 
             HttpClient client = HttpClient.newHttpClient();
-            HttpRequest secondRequest = HttpRequest.newBuilder()
+            HttpRequest llmRequest = HttpRequest.newBuilder()
                     .uri(new URI("http://localhost:30001/hashtag"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpResponse<String> response = client.send(secondRequest, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(llmRequest, HttpResponse.BodyHandlers.ofString());
             String hashtag = response.body();
 
-            // If the hashtag service fails to generate a hashtag, use the default.
             if (hashtag == null || hashtag.trim().isEmpty()) {
                 hashtag = "#bskypost";
             }
-            System.out.println("Response is: " + hashtag);
             return hashtag;
         }
     }

@@ -17,10 +17,6 @@ public class Main {
         ParseAndCreate newParser = new ParseAndCreate();
         List<Post> newPosts = newParser.parsePosts(resourceName);
         List<Post> topLikedPosts;
-        int[] indexes = new int[10];
-        // Set each element to -1
-        Arrays.fill(indexes, -1);
-        int indexPointer = 0;
 
         PriorityQueue<Post> topPosts = new PriorityQueue<>((a, b) -> Integer.compare(a.getLikeCount(), b.getLikeCount()));
 
@@ -28,7 +24,7 @@ public class Main {
             if (topPosts.size() < 10) {
                 topPosts.add(post);
             } else if (post.getLikeCount() > topPosts.peek().getLikeCount()) {
-                topPosts.poll();  // Remove the post with the least likes
+                topPosts.poll();  // remove post with least likes
                 topPosts.add(post);
             }
         }
@@ -41,17 +37,17 @@ public class Main {
     }
 
     private static void processPost(Post post, boolean isReply) throws Exception {
-        String moderationResult = moderatePost(post);
+        String result = moderatePost(post);
         String prefix = isReply ? "--> " : "";
         String output;
-        if ("FAILED".equals(moderationResult)) {
+        if ("FAILED".equals(result)) {
             output = prefix + "[DELETED]";
         } else {
-            output = prefix + post.getPostContent() + " " + moderationResult;
+            output = prefix + post.getPostContent() + " " + result;
         }
         System.out.println(output);
 
-        // Process replies recursively
+        // recurse on replies
         List<Post> replies = post.getReplies();
         if (replies != null && !replies.isEmpty()) {
             for (Post reply : replies) {
@@ -62,26 +58,25 @@ public class Main {
 
 
     private static String moderatePost(Post post) throws Exception {
-        // Create JSON payload for the post
+        // create JSON payload for the post
         String jsonInputString = "{\"postContent\": \"" + escapeJson(post.getPostContent()) + "\"}";
 
         URL url = new URL("http://localhost:30000/moderate");
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json; utf-8");
-        con.setDoOutput(true);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json; utf-8");
+        connection.setDoOutput(true);
 
-        try (OutputStream os = con.getOutputStream()) {
+        try (OutputStream os = connection.getOutputStream()) {
             byte[] input = jsonInputString.getBytes("utf-8");
             os.write(input, 0, input.length);
         }
 
-        // Read response from the moderation service.
-        java.io.InputStream responseStream = (con.getResponseCode() >= 400) ? con.getErrorStream() : con.getInputStream();
+        java.io.InputStream responseStream = (connection.getResponseCode() >= 400) ? connection.getErrorStream() : connection.getInputStream();
         java.util.Scanner s = new java.util.Scanner(responseStream).useDelimiter("\\A");
-        String moderationResponse = s.hasNext() ? s.next() : "";
+        String response = s.hasNext() ? s.next() : "";
         s.close();
-        return moderationResponse.trim();
+        return response.trim();
     }
 
 

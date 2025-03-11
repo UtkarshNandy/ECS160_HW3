@@ -26,7 +26,7 @@ public class HashtaggingController {
         String host = "http://localhost:11434/";
         OllamaAPI ollamaAPI = new OllamaAPI(host);
         ollamaAPI.setRequestTimeoutSeconds(60);
-        String prompt = "Generate a one word hashtag for the following sentence: " + content;
+        String prompt = "Generate a one word hashtag for the following sentence, do not generate anything else. Content: " + content;
         OllamaResult result =
                 ollamaAPI.generate(OllamaModelType.LLAMA2, prompt, false, new OptionsBuilder().build());
 
